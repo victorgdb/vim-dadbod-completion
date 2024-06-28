@@ -71,7 +71,7 @@ let s:bigquery = {
       \ 'args': [],
       \ 'column_query': s:query,
       \ 'count_column_query': s:count_query,
-      \ 'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', table, '')},
+      \ 'table_column_query': {table -> printf('SELECT table_name, column_name FROM `carbonfact-gsheet:kaya.INFORMATION_SCHEMA.COLUMNS` WHERE table_name="%s"', table)},
       \ 'functions_query': "SELECT routine_name FROM `INFORMATION_SCHEMA`.ROUTINES WHERE routine_type='FUNCTION'",
       \ 'functions_parser': {list->list[1:-4]},
       \ 'schemas_query': s:schema_query,
