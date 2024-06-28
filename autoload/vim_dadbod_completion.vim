@@ -168,7 +168,7 @@ function! vim_dadbod_completion#fetch(bufnr) abort
     let g:db_adapter_sqlite3 = 'db#adapter#sqlite#'
   endif
 
-  let g:db_adapter_bigquery = 'db#adapter#bigquery#filter#' 
+  let g:db_adapter_bigquery = 'db#adapter#bigquery#' 
 
   if index(s:filetypes, getbufvar(a:bufnr, '&filetype')) < 0 && empty(getbufvar(a:bufnr, 'dbui_db_key_name'))
     return
@@ -266,7 +266,7 @@ endfunction
 
 function! s:generate_query(db, query_key, ...) abort
   let scheme = s:cache[a:db].scheme
-  let base_query = db#adapter#dispatch(a:db, 'interactive') + get(scheme, 'args', [])
+  let base_query = db#adapter#dispatch(a:db, 'filter') + get(scheme, 'args', [])
   let Query = scheme[a:query_key]
   if a:0 > 0
     let Query = Query(a:1)
