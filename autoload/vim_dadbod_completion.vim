@@ -314,6 +314,7 @@ function! s:get_table_scope_columns(db, table_scope) abort
 
   call vim_dadbod_completion#utils#msg(printf('Fetching columns for table %s...', a:table_scope))
   let [query, stdin] = s:generate_query(a:db, 'table_column_query', a:table_scope)
+  call vim_dadbod_completion#utils#msg(printf('Result: %s', a:query))
   call vim_dadbod_completion#job#run(query, function('s:cache_table_columns', [a:db, a:table_scope]), stdin)
   return []
 endfunction
