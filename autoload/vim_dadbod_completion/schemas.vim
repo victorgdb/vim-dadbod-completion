@@ -1,8 +1,8 @@
-let s:base_column_query = 'SELECT TABLE_NAME,COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS'
-let s:query = s:base_column_query.' ORDER BY COLUMN_NAME ASC'
-let s:schema_query = 'SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS GROUP BY TABLE_SCHEMA,TABLE_NAME'
-let s:count_query = 'SELECT COUNT(*) AS total FROM INFORMATION_SCHEMA.COLUMNS'
-let s:table_column_query = s:base_column_query.' WHERE TABLE_NAME={db_tbl_name}'
+let s:base_column_query = 'SELECT table_name, column_name FROM `INFORMATION_SCHEMA`.COLUMNS'
+let s:query = s:base_column_query.' ORDER BY column_name ASC'
+let s:schema_query = 'SELECT table_schema, table_name FROM `INFORMATION_SCHEMA`.TABLES GROUP BY table_schema, table_name'
+let s:count_query = 'SELECT COUNT(*) AS total FROM `INFORMATION_SCHEMA`.COLUMNS'
+let s:table_column_query = s:base_column_query.' WHERE table_name="{db_tbl_name}"'
 let s:reserved_words = vim_dadbod_completion#reserved_keywords#get_as_dict()
 let s:quote_rules = {
       \ 'camelcase': {val -> val =~# '[A-Z]' && val =~# '[a-z]'},
@@ -38,40 +38,12 @@ function! s:count_parser(index, result) abort
   return str2nr(get(a:result, a:index, 0))
 endfunction
 
-let s:postgres = {
-      \ 'args': ['-A', '-c'],
-      \ 'column_query': s:query,
-      \ 'count_column_query': s:count_query,
-      \ 'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', "'".table."'", '')},
-      \ 'functions_query': "SELECT routine_name FROM information_schema.routines WHERE routine_type='FUNCTION'",
-      \ 'functions_parser': {list->list[1:-4]},
-      \ 'schemas_query': s:schema_query,
-      \ 'schemas_parser': function('s:map_and_filter', ['|']),
-      \ 'quote': ['"', '"'],
-      \ 'should_quote': function('s:should_quote', [['camelcase', 'reserved_word', 'space']]),
-      \ 'column_parser': function('s:map_and_filter', ['|']),
-      \ 'count_parser': function('s:count_parser', [1])
-      \ }
-
-let s:oracle_args = "echo \"SET linesize 4000;\nSET pagesize 4000;\n%s\" | "
-let s:oracle_base_column_query = printf(s:oracle_args, "COLUMN column_name FORMAT a50;\nCOLUMN table_name FORMAT a50;\nSELECT C.table_name, C.column_name FROM all_tab_columns C JOIN all_users U ON C.owner = U.username WHERE U.common = 'NO' %s;")
-let s:oracle = {
-\   'column_parser': function('s:map_and_filter', ['\s\s\+']),
-\   'column_query': printf(s:oracle_base_column_query, 'ORDER BY C.column_name ASC'),
-\   'count_column_query': printf(s:oracle_args, "COLUMN total FORMAT 9999999;\nSELECT COUNT(*) AS total FROM all_tab_columns C JOIN all_users U ON C.owner = U.username WHERE U.common = 'NO';"),
-\   'count_parser': function('s:count_parser', [1]),
-\   'quote': ['"', '"'],
-\   'requires_stdin': v:true,
-\   'schemas_query': printf(s:oracle_args, "COLUMN owner FORMAT a20;\nCOLUMN table_name FORMAT a25;\nSELECT T.owner, T.table_name FROM all_tables T JOIN all_users U ON T.owner = U.username WHERE U.common = 'NO' ORDER BY T.table_name;"),
-\   'schemas_parser': function('s:map_and_filter', ['\s\s\+']),
-\   'should_quote': function('s:should_quote', [['camelcase', 'reserved_word', 'space']]),
-\   'table_column_query': {table -> printf(s:oracle_base_column_query, "AND C.table_name='".table."'")},
-\ }
 let s:bigquery = {
+      \ 'args': ['query', '--use_legacy_sql=false'],
       \ 'column_query': s:query,
       \ 'count_column_query': s:count_query,
       \ 'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', table, '')},
-      \ 'functions_query': "SELECT routine_name FROM `INFORMATION_SCHEMA`.`ROUTINES` WHERE routine_type='FUNCTION'",
+      \ 'functions_query': "SELECT routine_name FROM `INFORMATION_SCHEMA`.ROUTINES WHERE routine_type='FUNCTION'",
       \ 'functions_parser': {list->list[1:-4]},
       \ 'schemas_query': s:schema_query,
       \ 'schemas_parser': function('s:map_and_filter', ['|']),
@@ -81,23 +53,10 @@ let s:bigquery = {
       \ 'count_parser': function('s:count_parser', [1])
       \ }
 
-let s:mysql = {
-\   'column_query': s:query,
-\   'count_column_query': s:count_query,
-\   'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', "'".table."'", '')},
-\   'schemas_query': s:schema_query,
-\   'schemas_parser': function('s:map_and_filter', ['\t']),
-\   'requires_stdin': v:true,
-\   'quote': ['`', '`'],
-\   'should_quote': function('s:should_quote', [['reserved_word', 'space']]),
-\   'column_parser': function('s:map_and_filter', ['\t']),
-\   'count_parser': function('s:count_parser', [1])
-\ }
-
 let s:schemas = {
+      \ 'bigquery': s:bigquery,
       \ 'postgres': s:postgres,
       \ 'postgresql': s:postgres,
-      \ 'bigquery': s:bigquery,
       \ 'mysql': s:mysql,
       \ 'mariadb': s:mysql,
       \ 'oracle': s:oracle,
@@ -147,4 +106,3 @@ function! vim_dadbod_completion#schemas#get_quotes_rgx() abort
         \ 'close': escape(join(close, '\|'), '[]')
         \ }
 endfunction
-
