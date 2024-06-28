@@ -68,7 +68,7 @@ let s:oracle = {
 \   'table_column_query': {table -> printf(s:oracle_base_column_query, "AND C.table_name='".table."'")},
 \ }
 let s:bigquery = {
-      \ 'args': ['query', '--use_legacy_sql=false'],
+      \ 'args': [],
       \ 'column_query': s:query,
       \ 'count_column_query': s:count_query,
       \ 'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', table, '')},
