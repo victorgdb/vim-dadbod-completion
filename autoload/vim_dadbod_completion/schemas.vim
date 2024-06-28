@@ -71,7 +71,7 @@ let s:oracle = {
         \ 'args': ['-q'],
         \ 'column_query': 'SELECT table_name, column_name FROM `kaya.INFORMATION_SCHEMA.COLUMNS` ORDER BY column_name ASC',
         \ 'count_column_query': 'SELECT COUNT(*) AS total FROM `kaya.INFORMATION_SCHEMA.COLUMNS`',
-        \ 'table_column_query': {table -> substitute('SELECT table_name, column_name FROM `kaya.INFORMATION_SCHEMA.COLUMNS` WHERE table_name={db_tbl_name}', '{db_tbl_name}', "'".table."'", '')},
+      \ 'table_column_query': {table -> printf('SELECT table_name, column_name FROM `kaya.INFORMATION_SCHEMA.COLUMNS` WHERE table_name="%s"', table)},
         \ 'schemas_query': 'SELECT table_schema, table_name FROM `kaya.INFORMATION_SCHEMA.TABLES` GROUP BY table_schema, table_name',
         \ 'schemas_parser': function('s:map_and_filter', ['|']),
         \ 'quote': ['`', '`'],
