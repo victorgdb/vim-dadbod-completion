@@ -68,13 +68,13 @@ let s:oracle = {
 \   'table_column_query': {table -> printf(s:oracle_base_column_query, "AND C.table_name='".table."'")},
 \ }
 let s:bigquery = {
-      \ 'args': ['query', '--use_legacy_sql=false'],
+      \ 'args': [],
       \ 'column_query': s:query,
       \ 'count_column_query': s:count_query,
-      \ 'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', table, '')},
-      \ 'functions_query': "SELECT routine_name FROM `INFORMATION_SCHEMA`.ROUTINES WHERE routine_type='FUNCTION'",
+      \ 'table_column_query': {table -> 'bq query --nouse_legacy_sql "' . substitute(s:table_column_query, '{db_tbl_name}', table, '') . '"'},
+      \ 'functions_query': 'bq query --nouse_legacy_sql "SELECT routine_name FROM `INFORMATION_SCHEMA`.ROUTINES WHERE routine_type=\'FUNCTION\'"',
       \ 'functions_parser': {list->list[1:-4]},
-      \ 'schemas_query': s:schema_query,
+      \ 'schemas_query': 'bq query --nouse_legacy_sql "' . s:schema_query . '"',
       \ 'schemas_parser': function('s:map_and_filter', ['|']),
       \ 'quote': ['`', '`'],
       \ 'should_quote': function('s:should_quote', [['camelcase', 'reserved_word', 'space']]),
