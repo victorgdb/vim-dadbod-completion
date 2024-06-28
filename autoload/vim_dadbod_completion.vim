@@ -168,7 +168,8 @@ function! vim_dadbod_completion#fetch(bufnr) abort
     let g:db_adapter_sqlite3 = 'db#adapter#sqlite#'
   endif
 
-  let g:db_adapter_bigquery = 'db#adapter#bigquery#filter' 
+  let g:db_adapter_bigquery = 'db#adapter#bigquery#filter#' 
+
   if index(s:filetypes, getbufvar(a:bufnr, '&filetype')) < 0 && empty(getbufvar(a:bufnr, 'dbui_db_key_name'))
     return
   endif
