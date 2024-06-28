@@ -68,7 +68,6 @@ let s:oracle = {
 \   'table_column_query': {table -> printf(s:oracle_base_column_query, "AND C.table_name='".table."'")},
 \ }
   let s:bigquery = {
-        \ 'args': ['-q'],
         \ 'column_query': 'SELECT table_name, column_name FROM `kaya.INFORMATION_SCHEMA.COLUMNS` ORDER BY column_name ASC',
         \ 'count_column_query': 'SELECT COUNT(*) AS total FROM `kaya.INFORMATION_SCHEMA.COLUMNS`',
       \ 'table_column_query': {table -> printf('SELECT table_name, column_name FROM `kaya.INFORMATION_SCHEMA.COLUMNS` WHERE table_name="%s"', table)},
