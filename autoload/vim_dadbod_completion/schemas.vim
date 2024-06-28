@@ -67,17 +67,20 @@ let s:oracle = {
 \   'should_quote': function('s:should_quote', [['camelcase', 'reserved_word', 'space']]),
 \   'table_column_query': {table -> printf(s:oracle_base_column_query, "AND C.table_name='".table."'")},
 \ }
-  let s:bigquery = {
-        \ 'column_query': 'SELECT table_name, column_name FROM `INFORMATION_SCHEMA.COLUMNS` ORDER BY column_name ASC',
-        \ 'count_column_query': 'SELECT COUNT(*) AS total FROM `INFORMATION_SCHEMA.COLUMNS`',
-      \ 'table_column_query': {table -> printf('SELECT table_name, column_name FROM `INFORMATION_SCHEMA.COLUMNS` WHERE table_name="%s"', table)},
-        \ 'schemas_query': 'SELECT table_schema, table_name FROM `INFORMATION_SCHEMA.TABLES` GROUP BY table_schema, table_name',
-        \ 'schemas_parser': function('s:map_and_filter', ['|']),
-        \ 'quote': ['`', '`'],
-        \ 'should_quote': function('s:should_quote', [['reserved_word', 'space']]),
-        \ 'column_parser': function('s:map_and_filter', ['|']),
-        \ 'count_parser': function('s:count_parser', [1])
-        \ }
+let s:bigquery = {
+      \ 'args': ['-c'],
+      \ 'column_query': s:query,
+      \ 'count_column_query': s:count_query,
+      \ 'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', table, '')},
+      \ 'functions_query': "SELECT routine_name FROM `INFORMATION_SCHEMA`.`ROUTINES` WHERE routine_type='FUNCTION'",
+      \ 'functions_parser': {list->list[1:-4]},
+      \ 'schemas_query': s:schema_query,
+      \ 'schemas_parser': function('s:map_and_filter', ['|']),
+      \ 'quote': ['`', '`'],
+      \ 'should_quote': function('s:should_quote', [['camelcase', 'reserved_word', 'space']]),
+      \ 'column_parser': function('s:map_and_filter', ['|']),
+      \ 'count_parser': function('s:count_parser', [1])
+      \ }
 
 let s:mysql = {
 \   'column_query': s:query,
