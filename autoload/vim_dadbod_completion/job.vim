@@ -27,8 +27,6 @@ function! s:nvim_job_cb(jobid, data, event) dict abort
 endfunction
 
 function! vim_dadbod_completion#job#run(cmd, callback, stdin) abort
-
-  call vim_dadbod_completion#utils#msg(printf('cmd: %s', a:cmd))
   if has('nvim')
     let jobid = jobstart(a:cmd, {
           \ 'on_stdout': function('s:nvim_job_cb'),
