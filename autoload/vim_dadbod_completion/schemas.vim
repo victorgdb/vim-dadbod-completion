@@ -68,10 +68,11 @@ let s:oracle = {
 \   'table_column_query': {table -> printf(s:oracle_base_column_query, "AND C.table_name='".table."'")},
 \ }
 let s:bigquery = {
+      \ 'args': ['query', '--use_legacy_sql=false'],
       \ 'column_query': s:query,
       \ 'count_column_query': s:count_query,
       \ 'table_column_query': {table -> substitute(s:table_column_query, '{db_tbl_name}', table, '')},
-      \ 'functions_query': "SELECT routine_name FROM `INFORMATION_SCHEMA`.`ROUTINES` WHERE routine_type='FUNCTION'",
+      \ 'functions_query': "SELECT routine_name FROM `INFORMATION_SCHEMA`.ROUTINES WHERE routine_type='FUNCTION'",
       \ 'functions_parser': {list->list[1:-4]},
       \ 'schemas_query': s:schema_query,
       \ 'schemas_parser': function('s:map_and_filter', ['|']),
