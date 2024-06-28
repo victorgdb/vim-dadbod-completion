@@ -272,7 +272,10 @@ function! s:generate_query(db, query_key, ...) abort
   if get(scheme, 'requires_stdin')
     return [base_query, Query]
   endif
-  return [base_query + [Query], '']
+  if type(Query) == type('')
+    let Query = [Query]
+  endif
+  return [base_query + Query, '']
 endfunction
 
 function! s:count_columns_and_cache(db, count) abort
