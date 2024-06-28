@@ -316,6 +316,9 @@ function! s:get_table_scope_columns(db, table_scope) abort
 endfunction
 
 function! s:cache_table_columns(db, table_scope, result)
+	
+print a:result
+print result
   let s:cache[a:db].columns_by_table[a:table_scope] = []
   let columns = call(s:cache[a:db].scheme.column_parser, [a:result])
   call map(columns, function('s:map_columns_by_table', [a:db]))
