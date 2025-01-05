@@ -5,10 +5,10 @@ Database auto completion powered by [vim-dadbod](https://github.com/tpope/vim-da
 Supports:
 * [coc.nvim](https://github.com/neoclide/coc.nvim)
 * [deoplete.nvim](https://github.com/Shougo/deoplete.nvim)
-* [completion-nvim](https://github.com/haorenW1025/completion-nvim)
 * [nvim-compe](https://github.com/hrsh7th/nvim-compe)
 * [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
 * [ddc.vim](https://github.com/Shougo/ddc.vim)
+* [blink.cmp](https://github.com/Saghen/blink.cmp)
 * Built in `omnifunc`
 
 ![coc-db](https://user-images.githubusercontent.com/1782860/78941173-717f6680-7ab7-11ea-91b3-18bf178b3735.gif)
@@ -31,23 +31,10 @@ For [coc.nvim](https://github.com/neoclide/coc.nvim)
 
 For `deoplete`, `completion-nvim`, `nvim-compe`, `ddc` and `omnifunc`, install it with your favorite plugin manager.
 
-```vimL
-function! PackagerInit() abort
-  packadd vim-packager
-  call packager#init()
-  call packager#add('kristijanhusak/vim-packager', { 'type': 'opt' })
-  call packager#add('tpope/vim-dadbod')
-  call packager#add('kristijanhusak/vim-dadbod-completion')
-
-  call packager#add('Shougo/deoplete.nvim')
-  "or
-  call packager#add('haorenW1025/completion-nvim')
-  "or
-  call packager#add('hrsh7th/nvim-compe')
-  "or
-  call packager#add('vim-denops/denops.vim')
-  call packager#add('Shougo/ddc.vim')
-endfunction
+```vim
+Plug 'tpope/vim-dadbod'
+Plug 'kristijanhusak/vim-dadbod-ui' "Optional
+Plug 'kristijanhusak/vim-dadbod-completion'
 
 " For built in omnifunc
 autocmd FileType sql setlocal omnifunc=vim_dadbod_completion#omni
@@ -58,13 +45,6 @@ let g:compe.source.vim_dadbod_completion = v:true
 " hrsh7th/nvim-cmp
   autocmd FileType sql,mysql,plsql lua require('cmp').setup.buffer({ sources = {{ name = 'vim-dadbod-completion' }} })
 
-" For completion-nvim
-augroup completion
-  autocmd!
-  autocmd BufEnter * lua require'completion'.on_attach()
-  autocmd FileType sql let g:completion_trigger_character = ['.', '"', '`', '[']
-augroup END
-
 " Shougo/ddc.vim
 call ddc#custom#patch_filetype(['sql', 'mysql', 'plsql'], 'sources', 'dadbod-completion')
 call ddc#custom#patch_filetype(['sql', 'mysql', 'plsql'], 'sourceOptions', {
@@ -73,17 +53,41 @@ call ddc#custom#patch_filetype(['sql', 'mysql', 'plsql'], 'sourceOptions', {
 \   'isVolatile': v:true,
 \ },
 \ })
+```
 
-" Source is automatically added, you just need to include it in the chain complete list
-let g:completion_chain_complete_list = {
-    \   'sql': [
-    \    {'complete_items': ['vim-dadbod-completion']},
-    \   ],
-    \ }
-" Make sure `substring` is part of this list. Other items are optional for this completion source
-let g:completion_matching_strategy_list = ['exact', 'substring']
-" Useful if there's a lot of camel case items
-let g:completion_matching_ignore_case = 1
+Configuration using [lazy.nvim](https://github.com/folke/lazy.nvim) with [vim-dadbod-ui](https://github.com/kristijanhusak/vim-dadbod-ui)
+```lua
+return {
+  {
+    'kristijanhusak/vim-dadbod-ui',
+    dependencies = {
+      { 'tpope/vim-dadbod', lazy = true },
+      { 'kristijanhusak/vim-dadbod-completion', ft = { 'sql', 'mysql', 'plsql' }, lazy = true },
+    },
+    cmd = {
+      'DBUI',
+      'DBUIToggle',
+      'DBUIAddConnection',
+      'DBUIFindBuffer',
+    },
+    init = function()
+      -- Your DBUI configuration
+      vim.g.db_ui_use_nerd_fonts = 1
+    end,
+  },
+  { -- optional saghen/blink.cmp completion source
+    'saghen/blink.cmp',
+    opts = {
+      sources = {
+        -- add vim-dadbod-completion to your completion providers
+        default = { "lsp", "path", "snippets", "buffer", "dadbod" },
+        providers = {
+          dadbod = { name = "Dadbod", module = "vim_dadbod_completion.blink" },
+        },
+      },
+    },
+  }
+}
 ```
 
 ## Features
@@ -93,7 +97,12 @@ let g:completion_matching_ignore_case = 1
 
 ## How it works
 * If an sql buffer is created by [vim-dadbod-ui](https://github.com/kristijanhusak/vim-dadbod-ui), it reads all the configuration from there. It should work out of the box.
-* If `vim-dadbod-ui` is not used, [vim-dadbod](https://github.com/tpope/vim-dadbod) `g:db` or `b:db` is used. If you want, you can also add `b:db_table` to limit autocompletions to that table only.
+* If `vim-dadbod-ui` is not used, there are multiple ways to define the connection string, prioritized by this order:
+  * Window variable - example: `let w:db = 'postgresql://user:pass@localhost:5432/db_name'`
+  * Tab variable - example: `let t:db = 'postgresql://user:pass@localhost:5432/db_name'`
+  * Buffer variable - example: `let b:db = 'postgresql://user:pass@localhost:5432/db_name'`. You can also add `let b:db_table = 'table_name'` to limit column completions only to this table
+  * Global variable - example: `let g:db = 'postgresql://user:pass@localhost:5432/db_name'`
+  * `$DATABASE_URL` env variable, defined outside of Vim, or inside with `let $DATABASE_URL = 'postgresql://user:pass@localhost:5432/db_name'`
 
 ## Settings
 Default mark for completion items is `[DB]`. To change it, add this to vimrc:
